@@ -3,8 +3,8 @@ const ASSETS = [
   './',
   './index.html',
   './main.css',
-  './192x192.png',
-  './512x512.png'
+  './icons/192x192.png',
+  './icons/512x512.png'
 ];
 
 
