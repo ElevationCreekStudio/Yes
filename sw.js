@@ -1,35 +1,63 @@
-const CACHE_NAME = 'yespwa-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './main.css',
-  './icons/192x192.png',
-  './icons/512x512.png'
-];
+const CacheKey = "cache-v1";
 
+const initCache = () => {
+  return caches.open(CacheKey).then((cache) => {
+    return cache.addAll([
+      './',
+      './index.html',
+      './main.css',
+      './icons/icon-192x192.png',
+      './icons/icon-512x512.png'
+  ]);
+  }, (error) => {
+    console.log(error)
+  });
+};
 
+const tryNetwork = (req, timeout) => {
+    console.log(req)
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(reject, timeout);
+    fetch(req).then((res) => {
+      clearTimeout(timeoutId);
+      const responseClone = res.clone();
+      caches.open(CacheKey).then((cache) => {
+        cache.put(req, responseClone)
+      })
+      resolve(res);
+      // Reject also if network fetch rejects.
+    }, reject);
+  });
+};
 
+const getFromCache = (req) => {
+  console.log('network is off so getting from cache...')
+  return caches.open(CacheKey).then((cache) => {
+    return cache.match(req).then((result) => {
+      return result || Promise.reject("no-match");
+    });
+  });
+};
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+self.addEventListener("install", (e) => {
+  console.log("Installed");
+  e.waitUntil(initCache());
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        })
-      )
-    )
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CacheKey) {
+          return caches.delete(key);
+        }
+      }));
+    })
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((resp) => resp || fetch(e.request))
-  );
+self.addEventListener("fetch", (e) => {
+  console.log("Try network and store result or get data from cache");
+  // Try network and if it fails, go for the cached copy.
+  e.respondWith(tryNetwork(e.request, 400).catch(() => getFromCache(e.request)));
 });
