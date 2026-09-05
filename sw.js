@@ -1,63 +1,31 @@
-const CacheKey = "cache-v1";
+const CACHE_NAME = 'yes-pwa-v1';
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/main.css',
+  '/app.js',
+  '/icon-192x192.png'
+];
 
-const initCache = () => {
-  return caches.open(CacheKey).then((cache) => {
-    return cache.addAll([
-      './',
-      './index.html',
-      './main.css',
-      './icons/icon-192x192.png',
-      './icons/icon-512x512.png'
-  ]);
-  }, (error) => {
-    console.log(error)
-  });
-};
-
-const tryNetwork = (req, timeout) => {
-    console.log(req)
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(reject, timeout);
-    fetch(req).then((res) => {
-      clearTimeout(timeoutId);
-      const responseClone = res.clone();
-      caches.open(CacheKey).then((cache) => {
-        cache.put(req, responseClone)
-      })
-      resolve(res);
-      // Reject also if network fetch rejects.
-    }, reject);
-  });
-};
-
-const getFromCache = (req) => {
-  console.log('network is off so getting from cache...')
-  return caches.open(CacheKey).then((cache) => {
-    return cache.match(req).then((result) => {
-      return result || Promise.reject("no-match");
-    });
-  });
-};
-
-self.addEventListener("install", (e) => {
-  console.log("Installed");
-  e.waitUntil(initCache());
-});
-
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CacheKey) {
-          return caches.delete(key);
-        }
-      }));
+// Событие установки воркера
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
     })
   );
 });
 
-self.addEventListener("fetch", (e) => {
-  console.log("Try network and store result or get data from cache");
-  // Try network and if it fails, go for the cached copy.
-  e.respondWith(tryNetwork(e.request, 400).catch(() => getFromCache(e.request)));
+// Событие активации
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker активирован');
+});
+
+// Перехват запросов (работа в офлайне)
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request);
+    })
+  );
 });
