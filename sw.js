@@ -1,10 +1,10 @@
 const CACHE_NAME = 'yes-pwa-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/main.css',
-  '/app.js',
-  '/icon-192x192.png'
+  './',
+  './index.html',
+  './main.css',
+  './icon-192x192.png',
+  './icon-512x512.png'
 ];
 
 // Событие установки воркера
