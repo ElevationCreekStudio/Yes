@@ -1,4 +1,5 @@
-const CACHE_NAME = 'yes-pwa-v3';
+const CACHE_PREFIX = 'yes';
+const CACHE_NAME = `${CACHE_PREFIX}-v1`;
 
 const ASSETS = [
   './',
@@ -19,22 +20,27 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Активация воркера и автоматическая очистка старого кэша
+
+// Активация воркера и безопасная очистка только своего старого кэша
 self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Воркер успешно активирован (Activate)!');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Обнаружен и удален старый кэш:', cache);
+          // Проверяем, что кэш принадлежит ИМЕННО этому проекту
+          // И проверяем, что его имя не совпадает с текущей актуальной версией
+          if (cache.startsWith(CACHE_PREFIX) && cache !== CACHE_NAME) {
+            console.log('[Service Worker] Удален старый кэш текущего проекта:', cache);
             return caches.delete(cache);
           }
+          // Кэши других проектов это условие просто проигнорирует
         })
       );
     })
   );
 });
+
 
 // Перехват запросов для работы в офлайне
 self.addEventListener('fetch', (event) => {
