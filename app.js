@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------
 
 // ТЕКУЩАЯ ВЕРСИЯ ПРИЛОЖЕНИЯ. Меняй её (например, на '2', '3'), когда обновляешь CSS/HTML!
-const APP_VERSION = '9'; 
+const APP_VERSION = '10'; 
 
 function showLog(message) {
   const loggerBox = document.getElementById('logger-content');
