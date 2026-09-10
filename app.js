@@ -1,18 +1,49 @@
 /* ===========================💮💮💮=========================== */
-// Скрипт регистрации Service Worker в основном приложении
+// Скрипт регистрации Service Worker с выводом логов на экран
 // ---------------------------------------------------------------
-// Проверяем, поддерживает ли браузер технологию Service Worker
+
+// Функция для вывода логов на экран смартфона/браузера
+function showLog(message) {
+  const loggerBox = document.getElementById('logger-content');
+  if (loggerBox) {
+    // Если это первый лог, очищаем надпись "Ожидание запуска..."
+    if (loggerBox.innerHTML === 'Ожидание запуска...') {
+      loggerBox.innerHTML = '';
+    }
+    // Добавляем новую строчку лога сверху или снизу (сейчас добавляется снизу)
+    loggerBox.innerHTML += `<div class="log-entry">📱 ${message}</div>`;
+    
+    // Автоматически прокручиваем окошко логов вниз
+    const parentContainer = document.getElementById('pwa-logger');
+    if (parentContainer) {
+      parentContainer.scrollTop = parentContainer.scrollHeight;
+    }
+  }
+}
+
+// Начинаем регистрацию
 if ('serviceWorker' in navigator) {
-  // Ждём полной загрузки страницы, чтобы не тормозить отрисовку интерфейса
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then((reg) => {
-        // Регистрация прошла успешно, выводим область видимости (scope) в консоль
-        console.log('[App] Service Worker успешно зарегистрирован! Сфера действия:', reg.scope);
-      })
-      .catch((error) => {
-        // Что-то пошло не так (например, ошибка в синтаксисе sw.js или неверный путь)
-        console.log('[App] Ошибка при регистрации Service Worker:', error);
-      });
+  
+  const swUrl = `./sw.js?v=${new Date().getTime()}`;
+  showLog('Попытка регистрации воркера...');
+
+  navigator.serviceWorker.register(swUrl)
+    .then((reg) => {
+      showLog('Успешно зарегистрирован!');
+      showLog(`Сфера: ${reg.scope.replace(window.location.origin, '')}`);
+      
+      // Запускаем проверку обновлений
+      showLog('Проверка обновлений на сервере...');
+      reg.update(); 
+    })
+    .catch((error) => {
+      showLog(`Ошибка регистрации: ${error.message}`);
+    });
+
+  // Дополнительно: слушаем, когда появляется новый воркер и устанавливается
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    showLog('Приложение обновилось! Перезапустите страницу.');
   });
+} else {
+  showLog('Браузер НЕ поддерживает Service Worker!');
 }

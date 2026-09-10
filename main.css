@@ -49,3 +49,45 @@ html, body {
   
   z-index: 10; /* Поднимаем ежа выше цветных блоков */
 }
+
+
+
+
+
+
+
+
+
+
+/* Окошко для логов внизу экрана */
+#pwa-logger {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  max-height: 120px;
+  background-color: rgba(0, 0, 0, 0.85); /* Полупрозрачный черный фон */
+  color: #00ffcc; /* Кислотно-зеленый "хакерский" текст */
+  padding: 10px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  overflow-y: auto; /* Полоса прокрутки, если логов много */
+  z-index: 100; /* Выше цветных блоков и ежа */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.logger-title {
+  color: #ffffff;
+  font-weight: bold;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 3px;
+}
+
+.log-entry {
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
