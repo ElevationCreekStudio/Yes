@@ -1,42 +1,31 @@
 /* ===========================💮💮💮=========================== */
-// Скрипт регистрации Service Worker (Исправленная версия)
+// Скрипт регистрации Service Worker в PWA приложении
 // ---------------------------------------------------------------
 
-// ТЕКУЩАЯ ВЕРСИЯ ПРИЛОЖЕНИЯ. Меняй её (например, на '2', '3'), когда обновляешь CSS/HTML!
-const APP_VERSION = '12'; 
+// Текущая версия приложения. Меняй её синхронно с версией кэша в sw.js на '1', '2' и т.д.
+const APP_VERSION = '0'; 
 
-function showLog(message) {
-  const loggerBox = document.getElementById('logger-content');
-  if (loggerBox) {
-    if (loggerBox.innerHTML === 'Ожидание запуска...') loggerBox.innerHTML = '';
-    loggerBox.innerHTML += `<div class="log-entry">📱 ${message}</div>`;
-    const parentContainer = document.getElementById('pwa-logger');
-    if (parentContainer) parentContainer.scrollTop = parentContainer.scrollHeight;
-  }
-}
-
+// Проверяем, поддерживает ли браузер технологию Service Worker
 if ('serviceWorker' in navigator) {
-  
-  // Кэш-бастер теперь стабильный на протяжении одной версии (например: ?v=2)
+  // Формируем URL с кэш-бастером (?v=APP_VERSION) против жёсткого HTTP-кэширования серверов.
   const swUrl = `./sw.js?v=${APP_VERSION}`;
-  showLog(`Попытка регистрации воркера (Версия ${APP_VERSION})...`);
-
+  
+  // Регистрируем скрипт. При первом визите браузер скачает sw.js напрямую из сети,
+  // а при последующих заходах - мгновенно загрузит его из своего внутреннего кэша.
   navigator.serviceWorker.register(swUrl)
     .then((reg) => {
-      showLog('Успешно зарегистрирован!');
-      showLog(`Сфера: ${reg.scope.replace(window.location.origin, '')}`);
+      // Сообщаем в консоль, что регистрация прошла успешно.
+      console.log('[App] Service Worker успешно зарегистрирован! Сфера действия:', reg.scope);
       
-      // Принудительно заставляем браузер проверить sw.js на сервере GitHub
-      reg.update(); 
+      // Сразу проверяем сервер на наличие более свежей версии sw.js.
+      // Это нужно, чтобы пользователь не сидел на старой версии при повторных заходах.
+      reg.update();
     })
     .catch((error) => {
-      showLog(`Ошибка регистрации: ${error.message}`);
+      // Что-то пошло не так (например, ошибка в синтаксисе sw.js или неверный путь).
+      console.error('[App] Ошибка при регистрации Service Worker:', error);
     });
-
-  // Если воркер обновился в фоне, сообщаем пользователю
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    showLog('✨ Обновление получено! Перезапустите приложение.');
-  });
 } else {
-  showLog('Браузер НЕ поддерживает Service Worker!');
+  // Выводим предупреждение для браузеров, которые не умеют в PWA.
+  console.warn('[App] Браузер НЕ поддерживает Service Worker!');
 }
